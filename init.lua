@@ -251,7 +251,9 @@ require('lazy').setup({
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
-    build = ':TSUpdate',
+    build = function()
+      require("nvim-treesitter.install").update({ with_sync = true })()
+    end,
   },
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
