@@ -18,10 +18,6 @@ Kickstart.nvim is a template for your own configuration.
   - https://learnxinyminutes.com/docs/lua/
 
 
-  And then you can explore or search through `:help lua-guide`
-  - https://neovim.io/doc/user/lua-guide.html
-
-
 Kickstart Guide:
 
 I have left several `:help X` comments throughout the init.lua
@@ -194,7 +190,42 @@ require('lazy').setup({
     name = "catppuccin",
     priority = 1000
   },
+  {	
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      "mfussenegger/nvim-dap-python",
+      "rcarriga/nvim-dap-ui",
+    },
+    config = function()
+      require("dapui").setup()
+      require("dap-python").setup('~/Documents/GitHub/rigshospitalet_etl/venv/bin/python')
+
+      local dap, dapui = require("dap"), require("dapui")
+
+      dap.listeners.before.attach.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.launch.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated.dapui_config = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited.dapui_config = function()
+        dapui.close()
+      end
+
+      vim.keymap.set("n", "<Leader>db", ":DapToggleBreakpoint<CR>")
+      vim.keymap.set("n", "<Leader>dc", ":DapContinue<CR>")
+      vim.keymap.set("n", "<Leader>dx", ":DapTerminate<CR>")
+      vim.keymap.set("n", "<Leader>do", ":DapStepOver<CR>")
+    end
+  },
   {
+    'https://codeberg.org/esensar/nvim-dev-container',
+    dependencies = 'nvim-treesitter/nvim-treesitter'
+  },
+ {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
     dependencies = {
@@ -286,7 +317,7 @@ vim.o.hlsearch = false
 
 -- Make line numbers default
 vim.wo.number = true
-
+vim.opt.relativenumber = true
 -- Enable mouse mode
 vim.o.mouse = 'a'
 
@@ -322,6 +353,15 @@ vim.o.termguicolors = true
 
 -- Keymaps for better default experience
 -- See `:help vim.keymap.set()`
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+
+vim.keymap.set("n", "J", "mzJ`z")
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<C-u>", "<C-u>zz")
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
+
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 vim.keymap.set("x", "<leader>p", [["_dP]])
@@ -614,6 +654,32 @@ require("catppuccin").setup({
 -- setup must be called before loading
 vim.cmd.colorscheme "catppuccin"
 
+require('lualine').setup{
+  sections = {
+    lualine_c = {
+      {
+        'filename',
+        file_status = true,      -- Displays file status (readonly status, modified status)
+        newfile_status = false,  -- Display new file status (new file means no write after created)
+        path = 1,                -- 0: Just the filename
+                                 -- 1: Relative path
+                                 -- 2: Absolute path
+                                 -- 3: Absolute path, with tilde as the home directory
+                                 -- 4: Filename and parent dir, with tilde as the home directory
+
+        shorting_target = 40,    -- Shortens path to leave 40 spaces in the window
+                                 -- for other components. (terrible name, any suggestions?)
+        symbols = {
+          modified = '[+]',      -- Text to show when the file is modified.
+          readonly = '[-]',      -- Text to show when the file is non-modifiable or readonly.
+          unnamed = '[No Name]', -- Text to show for unnamed buffers.
+          newfile = '[New]',     -- Text to show for newly created file before first write
+        }
+      }
+    }
+  }
+}
+
 require('mason').setup()
 require('mason-lspconfig').setup()
 
@@ -674,6 +740,39 @@ local cmp = require 'cmp'
 local luasnip = require 'luasnip'
 require('luasnip.loaders.from_vscode').lazy_load()
 luasnip.config.setup {}
+
+
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local conf = require("telescope.config").values
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local dap = require('dap')
+
+dap.configurations.python = {
+  {
+    -- The first three options are required by nvim-dap
+    type = 'python'; -- the type here established the link to the adapter definition: `dap.adapters.python`
+    request = 'launch';
+    name = "Launch file";
+    cwd = "${workspaceFolder}",
+
+    program = "${file}"; -- This configuration will launch the current file if used.
+    pythonPath = function()
+      -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
+      -- The code below looks for a `venv` or `.venv` folder in the current directly and uses the python within.
+      -- You could adapt this - to for example use the `VIRTUAL_ENV` environment variable.
+      local cwd = vim.fn.getcwd()
+      if vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
+        return cwd .. '/venv/bin/python'
+      elseif vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
+        return cwd .. '/.venv/bin/python'
+      else
+        return '/usr/bin/python'
+      end
+    end;
+  },
+}
 
 cmp.setup {
   snippet = {
