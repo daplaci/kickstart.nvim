@@ -71,6 +71,7 @@ require('lazy').setup({
 
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
+  'tpope/vim-surround',
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -90,7 +91,7 @@ require('lazy').setup({
       'folke/neodev.nvim',
     },
   },
-
+  'github/copilot.vim',
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -190,7 +191,7 @@ require('lazy').setup({
     name = "catppuccin",
     priority = 1000
   },
-  {	
+  {
     "mfussenegger/nvim-dap",
     dependencies = {
       "mfussenegger/nvim-dap-python",
@@ -361,6 +362,14 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz")
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
+
+vim.keymap.set('i', '<C-L>', '<Plug>(copilot-accept-word)')
+
+vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
+  expr = true,
+  replace_keycodes = false
+})
+vim.g.copilot_no_tab_map = true
 
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
