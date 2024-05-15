@@ -549,6 +549,14 @@ vim.defer_fn(function()
   }
 end, 0)
 
+function _G.vsplit_lsp_definition()
+  vim.cmd('vsplit')
+  vim.lsp.buf.definition()
+end
+
+-- Map the function to a keybinding, for example, <leader>vd
+vim.api.nvim_set_keymap('n', 'gdd', '<cmd>lua vsplit_lsp_definition()<CR>', { noremap = true, silent = true })
+
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
@@ -570,6 +578,7 @@ local on_attach = function(_, bufnr)
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
   nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+  nmap('vgd', vsplit_lsp_definition, '[G]oto [D]efinition')
   nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
   nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
   nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
